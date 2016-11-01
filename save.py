@@ -67,7 +67,7 @@ def get_credentials():
 # ---------- ADD, UPDATE, DELETE ----------- 
 # 
 
-users = []
+users = {}
 
 def checkIsNotEmptyAndString(contactName, enterpriseName, state):
     if not isinstance(contactName, str) or not isinstance(enterpriseName, str) or not isinstance(state, str) or not contactName or not enterpriseName or not state:
@@ -89,13 +89,19 @@ def addUser():
             user = {}
             user = {'contactName':content['contactName'], 'enterpriseName':content['enterpriseName'], 'state':content['state']}
             
-            users.append(user)
+            if len(users) == 0:
+                users[0] = user
+            elif len(users)-1 == 0:
+                key = len(users) -1 + 1
+                users[1] = user
+            else:
+                key = len(users) -1 + 1
+                users[key] = user
 
             response = {
               "status": 'success',
               "data": {
-                    "user": user,
-                    "users": users,
+                    "user": user
               }
             }
 
@@ -122,34 +128,50 @@ def updateUser(user_name):
         
         if checkIsNotEmptyAndString(content['contactName'], content['enterpriseName'], content['state']):
             
-            status = 400
+            userFound = False
+
+            for key in users:
+                for index in users[key]:
+                    if users[key]['contactName'] == user_name:
+                        
+                        userFound = True
+
+                        userForUpdate = users[key]
+
+                        userForUpdate['contactName'] = content['contactName']
+                        userForUpdate['enterpriseName'] = content['enterpriseName']
+                        userForUpdate['state'] = content['state']
+
+                        response = {
+                          "status": 'success',
+                          "data": {
+                                "userUpdated": userForUpdate
+                          }
+                        }
+
+                        status = 200
+
+                    if userFound == False:
+                
+                        response = {
+                            "status" : "error",
+                            "message" : "Username not found in database"
+                        }       
+
+                        status = 404
+
+        else:
+            
             response = {
                 "status" : "error",
                 "message" : "Value of user are empty or not a string"
             }
 
-            for user in users:
-                if user['contactName'] == user_name:
-                        
-                    userFound = True
+            status = 400
 
-                    userForUpdate = user
-
-                    userForUpdate['contactName'] = content['contactName']
-                    userForUpdate['enterpriseName'] = content['enterpriseName']
-                    userForUpdate['state'] = content['state']
-
-                    response = {
-                      "status": 'success',
-                      "data": {
-                            "userUpdated": userForUpdate,
-                            "users": users
-                      }
-                    }
-
-                    status = 200
 
     return json.dumps(response), status
+
 
 
 
@@ -157,29 +179,47 @@ def updateUser(user_name):
 def deleteUser(user_name):
     if request.method == 'DELETE':
 
-        status = 404
-        response = {
-                    "status" : "error",
-                    "message" : "Username not found in database"
-                }       
+        for key in users:
+            for index in users[key]:
 
-        for user in users:
-            if user['contactName'] == user_name:
+                if users[key]['contactName'] == user_name:
+                    break
+                    del users[key]
 
-                users.remove(user)
+
+
+            # for index in users[key]:
+            #     if users[key]['contactName'] == user_name:
                     
-                response = {
+
+            #     else:
+        
+            #         response = {
+            #             "status" : "error",
+            #             "message" : "Bad username, not found"
+            #         }
+
+            #         status = 400
+
+        # userDeleted = users[user_id]
+        # userDeletedStr = str(userDeleted)
+
+        # del users[user_id]
+        
+        # response = 'User ID -> ' + str(user_id) + ' deleted : ' + userDeletedStr
+
+        # print("Tableau d'users : ", users)
+        response = {
                       "status": 'success',
                       "data": {
 
-                        "userRemoved": user,
                         "users": users
 
                       }
                 }
 
-                status = 200
-        
+        status = 200
+
     return json.dumps(response), status
 
 
@@ -192,107 +232,66 @@ def deleteUser(user_name):
 @app.route("/getUserByName/<string:user_name>", methods=['GET'])
 def getUserByName(user_name):
     if request.method == 'GET':
+        getUsersByName = {}
+        key = 0
 
-        status = 404
-        response = {
-                    "status" : "error",
-                    "message" : "Username not found in database"
-                }
+        for key in users:
+            for index in users[key]:
+                if users[key]['contactName'] == user_name:
+                    getUsersByName[key] = {'contactName': users[key]['contactName'], 'enterpriseName': users[key]['enterpriseName'], 'state': users[key]['state']}
+                    key = +1
+        
+        response = 'User get by name ' + str(user_name) + ' : ' + json.dumps(getUsersByName)
 
-        for user in users:
-            if user['contactName'] == user_name:
-
-                getUsersByName = {'contactName': user['contactName'], 'enterpriseName': user['enterpriseName'], 'state': user['state']}
-
-                response = {
-                  "status": 'success',
-                  "data": {
-                    "userByName": getUsersByName,
-                    }
-                }
-
-                status = 200 
-
-    return json.dumps(response), status
+    return response, 200
 
 @app.route("/getUserByEnterpriseName/<string:enterprise_name>", methods=['GET'])
 def getUserByEnterpriseName(enterprise_name):
     if request.method == 'GET':
+        getUsersByEnterpriseName = {}
+        key = 0
 
-        getUsersByEnterpriseName = []
-        usersByEnterprise = {}
+        for key in users:
+            for index in users[key]:
+                if users[key]['enterpriseName'] == enterprise_name:
+                    getUsersByEnterpriseName[key] = {'contactName': users[key]['contactName'], 'enterpriseName': users[key]['enterpriseName'], 'state': users[key]['state']}
+                    key = +1
+        
+        response = 'Users get by enterprise name ' + str(enterprise_name) + ' : ' + json.dumps(getUsersByEnterpriseName)
 
-        status = 404
-        response = {
-                    "status" : "error",
-                    "message" : "Enterprise not found in database"
-                }
-
-        for user in users:
-            if user['enterpriseName'] == enterprise_name:
-                usersByEnterprise = {'contactName': user['contactName'], 'enterpriseName': user['enterpriseName'], 'state': user['state']}
-                getUsersByEnterpriseName.append(usersByEnterprise)
-                
-                response = {
-                  "status": 'success',
-                  "data": {
-                    "usersByEnterprise": getUsersByEnterpriseName,
-                    }
-                }
-
-                status = 200
-                
-    return json.dumps(response), status
+    return response, 200
 
 @app.route("/getUserByState/<string:state>", methods=['GET'])
 def getUserByState(state):
     if request.method == 'GET':
+        getUserByState = {}
+        key = 0
 
-        getUserByState = []
-        usersByState = {}
+        for key in users:
+            for index in users[key]:
+                if users[key]['state'] == state:
+                    getUserByState[key] = {'contactName': users[key]['contactName'], 'enterpriseName': users[key]['enterpriseName'], 'state': users[key]['state']}
+                    key = +1
         
-        status = 404
-        response = {
-                    "status" : "error",
-                    "message" : "State not found in database"
-                }
+        response = 'Users get by state ' + str(state) + ' : ' + json.dumps(getUserByState)
 
-        for user in users:
-            if user['state'] == state:
-                usersByState = {'contactName': user['contactName'], 'enterpriseName': user['enterpriseName'], 'state': user['state']}
-                getUserByState.append(usersByState)
-            
-                response = {
-                  "status": 'success',
-                  "data": {
-                    "usersByState": getUserByState,
-                    }
-                }
-
-            status = 200
-    
-
-    return json.dumps(response), status
+    return response, 200
 
 @app.route("/getUserByParameter/<string:parameter>", methods=['GET'])
 def getUserByParameter(parameter):
     if request.method == 'GET':
-        getUserByParameter = []
-        usersByParameter = {}
+        getUserByParameter = {}
+        key = 0
 
-        for user in users:
-            if user['contactName'] == parameter or user['enterpriseName'] == parameter or user['state'] == parameter:
-                usersByParameter = {'contactName': user['contactName'], 'enterpriseName': user['enterpriseName'], 'state': user['state']}
-                getUserByParameter.append(usersByParameter)
+        for key in users:
+            for index in users[key]:
+                if users[key]['contactName'] == parameter or users[key]['enterpriseName'] == parameter or users[key]['state'] == parameter:
+                    getUserByParameter[key] = {'contactName': users[key]['contactName'], 'enterpriseName': users[key]['enterpriseName'], 'state': users[key]['state']}
+                    key = +1
+        
+        response = 'Users get by parameter ' + str(parameter) + ' : ' + json.dumps(getUserByParameter)
 
-                response = {
-                  "status": 'success',
-                  "data": {
-                    "usersByParameter": getUserByParameter,
-                    }
-                }
-
-    return json.dumps(response), status
+    return response, 200
 
 @app.route("/export", methods=['GET'])
 def export():
