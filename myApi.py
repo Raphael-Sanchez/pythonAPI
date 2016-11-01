@@ -215,6 +215,8 @@ def getUserByName(user_name):
 
     return json.dumps(response), status
 
+
+
 @app.route("/getUserByEnterpriseName/<string:enterprise_name>", methods=['GET'])
 def getUserByEnterpriseName(enterprise_name):
     if request.method == 'GET':
@@ -243,6 +245,8 @@ def getUserByEnterpriseName(enterprise_name):
                 status = 200
                 
     return json.dumps(response), status
+
+
 
 @app.route("/getUserByState/<string:state>", methods=['GET'])
 def getUserByState(state):
@@ -274,11 +278,20 @@ def getUserByState(state):
 
     return json.dumps(response), status
 
+
+
 @app.route("/getUserByParameter/<string:parameter>", methods=['GET'])
 def getUserByParameter(parameter):
     if request.method == 'GET':
+
         getUserByParameter = []
         usersByParameter = {}
+
+        status = 404
+        response = {
+                    "status" : "error",
+                    "message" : "Parameter not found in database"
+                }
 
         for user in users:
             if user['contactName'] == parameter or user['enterpriseName'] == parameter or user['state'] == parameter:
@@ -293,6 +306,8 @@ def getUserByParameter(parameter):
                 }
 
     return json.dumps(response), status
+
+
 
 @app.route("/export", methods=['GET'])
 def export():
@@ -309,25 +324,11 @@ def export():
         spreadsheetId = '1KqbZTNpaf2mgGwLzdSDaMuszjEm-PAT5ypijm7-zoAg'
         rangeName = 'A:C'
 
-        values = [
-        [
-            
-        ],
-        # Additional rows ...
-        ]
+        values = []
 
-        i = 0
-
-        for index in users:
-            if i > 0:
-                newUser = [users[index]['contactName'], users[index]['enterpriseName'], users[index]['state']]
-                values.append(newUser)
-            else:
-                values[0].append(users[index]['contactName'])
-                values[0].append(users[index]['enterpriseName'])
-                values[0].append(users[index]['state'])
-                i = +1
-
+        for user in users:
+            newUser = [user['contactName'], user['enterpriseName'], user['state']]
+            values.append(newUser)
        
         body = {
           'values': values
@@ -338,10 +339,16 @@ def export():
             spreadsheetId=spreadsheetId, range=rangeName,
             valueInputOption=value_input_option, body=body).execute()
         
- 
-        response = 'Status 200' + json.dumps(values)
+        response = {
+                  "status": 'success',
+                  "data": {
+                    "values": values,
+                    }
+                }
+        
+        status = 200
 
-    return response, 200
+    return json.dumps(response), status
 
 
 
