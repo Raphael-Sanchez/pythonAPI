@@ -16,33 +16,20 @@ from oauth2client.file import Storage
 
 app = Flask(__name__)
 
-# scope = ['https://spreadsheets.google.com/feeds']
-# credentials = ServiceAccountCredentials.from_json_keyfile_name('My Project-95911cabb342.json', scope)
-# sh = gspread.authorize(credentials)
-# sheet1 = sh.open_by_key('1KqbZTNpaf2mgGwLzdSDaMuszjEm-PAT5ypijm7-zoAg')
 
-# try:
-#     import argparse
-#     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
-# except ImportError:
-#     flags = None
+try:
+    import argparse
+    flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
+except ImportError:
+    flags = None
 
-# If modifying these scopes, delete your previously saved credentials
-# at ~/.credentials/sheets.googleapis.com-python-quickstart.json
 SCOPES = 'https://www.googleapis.com/auth/spreadsheets'
 CLIENT_SECRET_FILE = 'client_secret.json'
-APPLICATION_NAME = 'Google Sheets API Python Quickstart'
+APPLICATION_NAME = 'Google Sheets API Python'
 
 
 def get_credentials():
-    """Gets valid user credentials from storage.
-
-    If nothing has been stored, or if the stored credentials are invalid,
-    the OAuth2 flow is completed to obtain the new credentials.
-
-    Returns:
-        Credentials, the obtained credential.
-    """
+    
     home_dir = os.path.expanduser('~')
     credential_dir = os.path.join(home_dir, '.credentials')
     if not os.path.exists(credential_dir):
@@ -67,7 +54,9 @@ def get_credentials():
 # ---------- ADD, UPDATE, DELETE ----------- 
 # 
 
+# ARRAY OF USERS 
 users = []
+
 
 def checkIsNotEmptyAndString(contactName, enterpriseName, state):
     if not isinstance(contactName, str) or not isinstance(enterpriseName, str) or not isinstance(state, str) or not contactName or not enterpriseName or not state:
@@ -76,7 +65,6 @@ def checkIsNotEmptyAndString(contactName, enterpriseName, state):
         response = True
     
     return response
-
 
 
 @app.route("/addUser", methods=['POST'])
@@ -111,7 +99,6 @@ def addUser():
             status = 400
 
     return json.dumps(response), status
-
 
 
 @app.route("/updateUser/<string:user_name>", methods=['PUT'])
@@ -152,7 +139,6 @@ def updateUser(user_name):
     return json.dumps(response), status
 
 
-
 @app.route("/deleteUser/<string:user_name>", methods=['DELETE'])
 def deleteUser(user_name):
     if request.method == 'DELETE':
@@ -181,8 +167,6 @@ def deleteUser(user_name):
                 status = 200
         
     return json.dumps(response), status
-
-
 
 
 # 
@@ -216,7 +200,6 @@ def getUserByName(user_name):
     return json.dumps(response), status
 
 
-
 @app.route("/getUserByEnterpriseName/<string:enterprise_name>", methods=['GET'])
 def getUserByEnterpriseName(enterprise_name):
     if request.method == 'GET':
@@ -245,7 +228,6 @@ def getUserByEnterpriseName(enterprise_name):
                 status = 200
                 
     return json.dumps(response), status
-
 
 
 @app.route("/getUserByState/<string:state>", methods=['GET'])
@@ -279,7 +261,6 @@ def getUserByState(state):
     return json.dumps(response), status
 
 
-
 @app.route("/getUserByParameter/<string:parameter>", methods=['GET'])
 def getUserByParameter(parameter):
     if request.method == 'GET':
@@ -306,7 +287,6 @@ def getUserByParameter(parameter):
                 }
 
     return json.dumps(response), status
-
 
 
 @app.route("/export", methods=['GET'])
@@ -362,15 +342,6 @@ def export():
     return json.dumps(response), status
 
 
-# @cross_origin(origin='*',headers=['Content-Type','Authorization'])
-# def addUser():
-#
-#     print(request.data)
-#     print(request.json)
-#     print(request.args)
-#
-#     return "yes"
-#     # return flask.jsonify("request ok")
 
 if __name__ == '__main__':
     # main()
