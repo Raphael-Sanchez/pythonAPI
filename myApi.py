@@ -314,6 +314,7 @@ def export():
     if request.method == 'GET':
 
         credentials = get_credentials()
+
         http = credentials.authorize(httplib2.Http())
         discoveryUrl = ('https://sheets.googleapis.com/$discovery/rest?'
                         'version=v4')
@@ -321,40 +322,44 @@ def export():
                                   discoveryServiceUrl=discoveryUrl)
 
         value_input_option = 'RAW'
+
         spreadsheetId = '1KqbZTNpaf2mgGwLzdSDaMuszjEm-PAT5ypijm7-zoAg'
         rangeName = 'A:C'
 
         values = []
 
-        for user in users:
-            newUser = [user['contactName'], user['enterpriseName'], user['state']]
-            values.append(newUser)
-       
-        body = {
-          'values': values
-        }
+        if len(users) > 0:
 
-        # WRITE VALUES IN SHEET
-        result = service.spreadsheets().values().append(
-            spreadsheetId=spreadsheetId, range=rangeName,
-            valueInputOption=value_input_option, body=body).execute()
-        
-        response = {
-                  "status": 'success',
-                  "data": {
-                    "values": values,
+            for user in users:
+                newUser = [user['contactName'], user['enterpriseName'], user['state']]
+                values.append(newUser)
+           
+            body = {
+              'values': values
+            }
+
+            # WRITE VALUES IN SHEET
+            result = service.spreadsheets().values().append(
+                spreadsheetId=spreadsheetId, range=rangeName,
+                valueInputOption=value_input_option, body=body).execute()
+            
+            status = 200
+            response = {
+                      "status": 'success',
+                      "data": {
+                        "values": values,
+                        }
                     }
-                }
-        
-        status = 200
+            
+        else:
+
+            status = 400
+            response = {
+                        "status" : "error",
+                        "message" : "Database users is empty"
+                    }
 
     return json.dumps(response), status
-
-
-
-
-
-
 
 
 # @cross_origin(origin='*',headers=['Content-Type','Authorization'])
